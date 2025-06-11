@@ -1,23 +1,24 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from openai import OpenAI
 import os
 import re
-import motor.motor_asyncio  # Async MongoDB driver
+import motor.motor_asyncio
 from dotenv import load_dotenv
 
-load_dotenv()  # This loads variables from .env into os.environ
+# Load environment variables from .env
+load_dotenv()
 
-# OpenAI setup
+# Initialize OpenAI client
 openai_api_key = os.getenv("OPENAI_API_KEY")
-
 client = OpenAI(api_key=openai_api_key)
 
-# FastAPI app
+# Initialize FastAPI app
 app = FastAPI()
 
-# CORS middleware
+# CORS for frontend access (update origins in prod)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,25 +27,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB setup - replace <your_mongo_uri> with your actual MongoDB connection string
-MONGO_DETAILS = os.getenv("MONGO_URI")
-mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
+# MongoDB connection
+MONGO_URI = os.getenv("MONGO_URI")
+mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
 db = mongo_client.haiku_db
-haiku_collection = db.get_collection("haikus")
+haiku_collection = db.haikus  # or db.get_collection("haikus")
 
+# Request schema
 class HaikuRequest(BaseModel):
     elements: str
 
+# Utility to sanitize filename
 def sanitize_filename(text: str) -> str:
     return re.sub(r'[^\w\- ]', '', text).strip().replace(" ", "_")
 
-async def save_haiku_to_db(filename: str, haiku_text: str):
-    haiku_doc = {
-        "filename": filename,
-        "haiku": haiku_text
-    }
-    await haiku_collection.insert_one(haiku_doc)
-
+# Generate haiku from OpenAI
 def generate_haiku(elements: str) -> str:
     prompt = f"""You are a haiku poet. Write a 3-line haiku (5-7-5 syllable structure) based on the following elements: {elements}.
 Follow the traditional haiku form: three lines, with seasonal or emotional imagery."""
@@ -57,6 +54,11 @@ Follow the traditional haiku form: three lines, with seasonal or emotional image
     )
     return response.choices[0].message.content.strip()
 
+# Save to MongoDB
+async def save_haiku_to_db(filename: str, haiku: str):
+    await haiku_collection.insert_one({"filename": filename, "haiku": haiku})
+
+# POST /generate-haiku/
 @app.post("/generate-haiku/")
 async def create_haiku(req: HaikuRequest):
     try:
@@ -67,13 +69,14 @@ async def create_haiku(req: HaikuRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-from fastapi.responses import JSONResponse
-
+# GET /haikus/
 @app.get("/haikus/")
 async def get_all_haikus():
-    haikus_cursor = haiku_collection.find({})
-    haikus = []
-    async for doc in haikus_cursor:
-        haikus.append({"filename": doc.get("filename"), "haiku": doc.get("haiku")})
-    return JSONResponse(content=haikus)
+    try:
+        cursor = haiku_collection.find({})
+        results = []
+        async for doc in cursor:
+            results.append({"filename": doc.get("filename"), "haiku": doc.get("haiku")})
+        return JSONResponse(content=results)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

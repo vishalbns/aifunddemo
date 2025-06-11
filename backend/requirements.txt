@@ -1,8 +1,0 @@
-python-dotenv
-fastapi
-uvicorn[standard]
-openai
-google-cloud-storage
-pydantic
-python-multipart
-
