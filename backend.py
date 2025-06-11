@@ -18,10 +18,10 @@ client = OpenAI(api_key=openai_api_key)
 # Initialize FastAPI app
 app = FastAPI()
 
-# CORS for frontend access (update origins in prod)
+# CORS for frontend access - update origins in production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Change to your frontend domain for prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,7 +31,7 @@ app.add_middleware(
 MONGO_URI = os.getenv("MONGO_URI")
 mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
 db = mongo_client.haiku_db
-haiku_collection = db.haikus  # or db.get_collection("haikus")
+haiku_collection = db.haikus
 
 # Request schema
 class HaikuRequest(BaseModel):
@@ -57,6 +57,11 @@ Follow the traditional haiku form: three lines, with seasonal or emotional image
 # Save to MongoDB
 async def save_haiku_to_db(filename: str, haiku: str):
     await haiku_collection.insert_one({"filename": filename, "haiku": haiku})
+
+# Root endpoint for health check
+@app.get("/")
+async def root():
+    return {"message": "Haiku Generator API is running!"}
 
 # POST /generate-haiku/
 @app.post("/generate-haiku/")
