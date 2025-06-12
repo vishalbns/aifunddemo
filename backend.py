@@ -9,7 +9,7 @@ import motor.motor_asyncio
 from dotenv import load_dotenv
 
 # Load environment variables from .env
-load_dotenv()
+#load_dotenv()
 
 # Initialize OpenAI client
 openai_api_key = os.getenv("OPENAI_API_KEY")
