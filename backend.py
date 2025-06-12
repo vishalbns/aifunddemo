@@ -33,6 +33,8 @@ mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
 db = mongo_client.haiku_db
 haiku_collection = db.haikus
 
+print("OPENAI_API_KEY:", openai_api_key)
+print("MONGO_URI:", MONGO_URI)
 # Request schema
 class HaikuRequest(BaseModel):
     elements: str
