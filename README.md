@@ -35,17 +35,10 @@ Instantly generate haikus from your thoughts — no login needed!
 ## 📂 Project Structure
 
 aifunddemo/
-├── backend/ # FastAPI service with GPT and Mongo integration
-│ ├── main.py # API routes and logic
-│ └── requirements.txt # Backend dependencies
-├── frontend/ # Streamlit app
-│ ├── app.py # UI & API calls
-│ └── requirements.txt # Frontend dependencies
+├── backend.py # FastAPI service with GPT and Mongo integration
+├── frontend.py / # Streamlit app
+├── requirements.txt # Backend and Frontend dependencies
 └── README.md
-
-yaml
-Copy
-Edit
 
 ---
 
@@ -58,15 +51,13 @@ cd aifunddemo
 ```
 2. Backend (FastAPI + MongoDB)
 ```bash
-cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn backend:app --reload
 ```
 3. Frontend (Streamlit)
 ```bash
-cd ../frontend
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run frontend.py
 ```
 Make sure to add your OpenAI API key and MongoDB URI as environment variables.
 
