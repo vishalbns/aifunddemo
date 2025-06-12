@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 
-API_URL = "http://localhost:8000/generate-haiku/"
-GET_HAIKUS_URL = "http://localhost:8000/haikus/"
+# Updated API URLs for Render deployment
+API_URL = "https://aifunddemo.onrender.com/generate-haiku/"
+GET_HAIKUS_URL = "https://aifunddemo.onrender.com/haikus/"
 
 st.title("🖋️ Haiku Generator")
 st.subheader("Describe your mood, season, or moment...")
